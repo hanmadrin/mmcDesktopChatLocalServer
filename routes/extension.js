@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-var robot = require("robotjs");
-const electron = require('electron');
+const robot = require("robotjs");
+const ncp = require("copy-paste");
 
 
 router.use('/test', async (req, res) => {
@@ -35,9 +35,30 @@ router.post('/click', async (req, res) => {
 router.post('/type', async (req, res) => {
     const text = req.body.text;
     console.log(`text : ${text}`);
-    console.log(electron.clipboard);
-    clipboard.writeText(text);
+    // ncp copy await promise
+    await new Promise((resolve, reject) => {
+        ncp.copy(`text\niosfh`, () => {
+            resolve();
+        });
+    });
     robot.keyTap("v","control");
     res.json({ message: 'typed' })
 });
+
+router.post('/clickAndType', async (req, res) => {
+    const position = req.body.position;
+    const text = req.body.text;
+    console.log(`text : ${text}`);
+    console.log(`clickPosition : ${position.x}, ${position.y}`);
+    robot.moveMouse(position.x,position.y);
+    robot.mouseClick();
+    await new Promise((resolve, reject) => {
+        ncp.copy(text, () => {
+            resolve();
+        });
+    });
+    robot.keyTap("v","control");
+    res.json({ message: 'clicked and typed' })
+});
+
 module.exports = router;
